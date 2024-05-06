@@ -8,14 +8,13 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
+
 import praktikum.burger.page_object.LoginPage;
 import praktikum.burger.page_object.MainPage;
 import praktikum.burger.page_object.ProfilePage;
 import praktikum.burger.util.WebDriverUtil;
 
-import java.util.concurrent.TimeUnit;
+
 @RunWith(Parameterized.class)
 public class TransitionIntoProfileTest {
     private WebDriver driver;
