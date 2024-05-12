@@ -1,42 +1,32 @@
 import io.qameta.allure.Description;
 import io.qameta.allure.junit4.DisplayName;
-import org.junit.Before;
+import org.junit.Assert;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.openqa.selenium.WebDriver;
-import org.junit.After;
-import praktikum.burger.page_object.LoginPage;
-import praktikum.burger.page_object.MainPage;
-import praktikum.burger.page_object.ForgotPasswordPage;
-import praktikum.burger.page_object.RegisterPage;
-import praktikum.burger.util.WebDriverUtil;
+import praktikum.burger.client.User;
+import praktikum.burger.client.UserClient;
+import praktikum.burger.pageobject.*;
+import java.util.concurrent.TimeUnit;
 
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric;
 
-@RunWith(Parameterized.class)
-public class LoginTest {
-    private WebDriver driver;
-    private String driverType;
-    private final static String EMAIL = "katy@yandex.ru";
-    private final static String PASSWORD = "katy12katy";
+public class LoginTest extends BaseTest {
 
-    public LoginTest(String driverType) {
-        this.driverType = driverType;
-    }
+    @Override
+    public void setUp() {
+        driver = getWebDriver();
+        driver.manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
+        driver.get(BASE_URL);
 
-    @Before
-    public void startUp() {
-        driver = WebDriverUtil.initializeDriver(driverType);
-        WebDriverUtil.navigateToUrl(driver, "https://stellarburgers.nomoreparties.site/");
-    }
 
-    @Parameterized.Parameters(name = "Результаты проверок браузера: {0}")
-    public static Object[][] getDataDriver() {
-        return new Object[][]{
-                {"chromedriver"},
-                {"yandexdriver"},
-        };
+        name = randomAlphanumeric(4, 8);
+        email = randomAlphanumeric(6, 10) + "@yandex.ru";
+        password = randomAlphanumeric(10, 20);
+
+        User user = new User(name, email, password);
+        accessToken = UserClient.postCreateNewUser(user);
+        if (accessToken == null) {
+            System.out.println("Failed to create user.");
+        }
     }
 
     @Test
@@ -46,9 +36,7 @@ public class LoginTest {
         MainPage mainPage = new MainPage(driver);
         mainPage.clickOnLoginButton();
         LoginPage loginPage = new LoginPage(driver);
-        loginPage.authorization(EMAIL, PASSWORD);
-        //loginPage.clickOnLoginButton();
-        mainPage.waitForLoadMainPage();
+        loginPage.authorization(email, password);
     }
 
     @Test
@@ -58,8 +46,7 @@ public class LoginTest {
         MainPage mainPage = new MainPage(driver);
         mainPage.clickOnProfileButton();
         LoginPage loginPage = new LoginPage(driver);
-        loginPage.authorization(EMAIL, PASSWORD);
-        mainPage.waitForLoadMainPage();
+        loginPage.authorization(email, password);
     }
 
     @Test
@@ -71,13 +58,8 @@ public class LoginTest {
         LoginPage loginPage = new LoginPage(driver);
         loginPage.clickOnRegisterButton();
         RegisterPage registerPage = new RegisterPage(driver);
-        String name = randomAlphanumeric(4, 8);
-        String email = randomAlphanumeric(6, 10) + "@yandex.ru";;
-        String password = randomAlphanumeric(6, 10);
-        registerPage.registration(name, email, password);
-        loginPage.waitForLoadEntrance();
+        registerPage.clickSignInButton();
         loginPage.authorization(email, password);
-        mainPage.waitForLoadMainPage();
     }
 
     @Test
@@ -89,15 +71,25 @@ public class LoginTest {
         LoginPage loginPage = new LoginPage(driver);
         loginPage.clickOnForgotPasswordButton();
         ForgotPasswordPage forgotPasswordPage = new ForgotPasswordPage(driver);
-        forgotPasswordPage.waitForLoadedRecoverPassword();
         forgotPasswordPage.clickSignIn();
-        loginPage.authorization(EMAIL, PASSWORD);
+        loginPage.authorization(email, password);
+    }
+    @Test
+    @DisplayName("Выход из аккаунта")
+    @Description("Проверка выхода по кнопке 'Выйти' в личном кабинете.")
+    public void logOutTest() {
+        MainPage mainPage = new MainPage(driver);
+        mainPage.clickOnProfileButton();
+        LoginPage loginPage = new LoginPage(driver);
+        loginPage.waitForLoadEntrance();
+        loginPage.authorization(email, password);
         mainPage.waitForLoadMainPage();
+        mainPage.clickOnProfileButton();
+        ProfilePage profilePage = new ProfilePage(driver);
+        profilePage.waitForLoadProfilePage();
+        profilePage.clickOnExitButton();
+        mainPage.waitForInvisibilityLoadingAnimation();
+        Assert.assertTrue("Не удалось выйти из аккаунта", driver.findElement(loginPage.entrance).isDisplayed());
     }
 
-    @After
-    public void tearDown() {
-        // Закрытие браузера
-        driver.quit();
-    }
 }

@@ -2,35 +2,46 @@ package praktikum.burger.util;
 
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
+import io.github.bonigarcia.wdm.WebDriverManager;
 import org.openqa.selenium.chrome.ChromeOptions;
 
-import java.util.concurrent.TimeUnit;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Properties;
+
 
 public class WebDriverUtil {
-    public static WebDriver initializeDriver(String driverType) {
-        WebDriver driver = null;
-        if (driverType.equals("chromedriver")) {
-            System.setProperty("webdriver.chrome.driver", "C:\\WebDriver\\bin\\chromedriver-win64\\chromedriver.exe");
-            ChromeOptions options = new ChromeOptions();
-            driver = new ChromeDriver(options);
-        } else if (driverType.equals("yandexdriver")) {
-            System.setProperty("webdriver.chrome.driver", "C:\\WebDriver\\bin\\yandexdriver.exe");
-            ChromeOptions options = new ChromeOptions();
-            options.setBinary("C:\\Users\\voron\\AppData\\Local\\Yandex\\YandexBrowser\\Application\\browser.exe");
-            driver = new ChromeDriver(options);
-        }
-        driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
-        return driver;
-    }
 
-    public static void navigateToUrl(WebDriver driver, String url) {
-        driver.navigate().to(url);
-    }
-
-    public static void quitDriver(WebDriver driver) {
-        if (driver != null) {
-            driver.quit();
+    public WebDriver getWebDriver() {
+        String browserName = getBrowserName();
+        switch (browserName.toLowerCase()) {
+            case "chrome":
+                WebDriverManager.chromedriver().setup();
+                return new ChromeDriver();
+            case "yandex":
+                System.setProperty("webdriver.chrome.driver", "src/main/resources/yandexdriver.exe");
+                ChromeOptions options = new ChromeOptions();
+                return new ChromeDriver(options);
+            default:
+                throw new IllegalArgumentException("Invalid browser name specified in config.properties");
         }
     }
+
+    public String getBrowserName() {
+        FileInputStream fis;
+        Properties property = new Properties();
+
+        try {
+            fis = new FileInputStream("src/main/java/praktikum/burger/util/config.properties");
+            property.load(fis);
+
+            return property.getProperty("browser");
+
+        } catch (IOException e) {
+            System.err.println("ERROR! No property file!");
+            return null;
+        }
+    }
+
 }
 

@@ -1,0 +1,8 @@
+praktikum\burger\pageobject\ForgotPasswordPage.class
+praktikum\burger\pageobject\LoginPage.class
+praktikum\burger\pageobject\RegisterPage.class
+praktikum\burger\client\UserClient.class
+praktikum\burger\pageobject\MainPage.class
+praktikum\burger\pageobject\ProfilePage.class
+praktikum\burger\client\User.class
+praktikum\burger\util\WebDriverUtil.class
